@@ -19,21 +19,21 @@ int main(void) {
     GraphPool net(N, MAX_LITR);
 
     net.FillPools(N);
-    std::cout << "Заполнение бассейнов..." << std::endl;
     net.ShowLitres();
+    std::cout << "Заполнение бассейнов..." << std::endl;
 
     net.ConnectPools(K);
-    std::cout << "Соединение бассейнов..." << std::endl;
     net.ShowLitres();
+    std::cout << "Соединение бассейнов..." << std::endl;
 
     net.FillPools(L);
-    std::cout << "Заполнение бассейнов..." << std::endl;
     net.ShowLitres();
+    std::cout << "Заполнение бассейнов..." << std::endl;
 
     net.UnconnectPools(M);
     net.FillPools(L);
-    std::cout << "Разъединение и заполнение бассейнов..." << std::endl;
     net.ShowLitres();
+    std::cout << "Разъединение и заполнение бассейнов..." << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
 
