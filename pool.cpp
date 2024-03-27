@@ -35,7 +35,7 @@ int GraphPool::ConnectPool(void) {
     }
 
     if (graph_connect.count(id_2) == 0) {
-        graph_connect[id_1] = std::set<unsigned long long>();
+        graph_connect[id_2] = std::set<unsigned long long>();
     }
 
     if (std::find(graph_connect[id_1].begin(), graph_connect[id_1].end(), id_2) != graph_connect[id_1].end()) { // если такая связь есть, то возвращаемся
@@ -54,27 +54,26 @@ int GraphPool::ConnectPool(void) {
 }
 
 int GraphPool::UnconnectPool() {
+
     auto it_11 = graph_connect.begin();
-    std::cout << 0 << std::endl;
     std::advance(it_11, rand() % graph_connect.size());
-    std::cout << 1 << std::endl;
     auto it_12 = it_11->second.begin();
-    std::cout << 2 << std::endl;
     std::set<unsigned long long> tmp = it_11->second;
-    std::cout << 3 << std::endl;
     std::advance(it_12, rand() % tmp.size());
-    std::cout << 4 << std::endl;
 
     unsigned long long id_1 = it_11->first;
-    std::cout << 5 << std::endl;
     unsigned long long id_2 = *it_12;
-    std::cout << 6 << std::endl;
 
-    std::cout << *(std::find(graph_connect[id_2].begin(), graph_connect[id_2].end(), id_1)) << std::endl;
     graph_connect[id_2].erase(std::find(graph_connect[id_2].begin(), graph_connect[id_2].end(), id_1));
-    std::cout << 7 << std::endl;
     graph_connect[id_1].erase(it_12);
-    std::cout << 8 << std::endl;
+
+    if (graph_connect[id_1].size() == 0) {
+        graph_connect.erase(id_1);
+    }
+
+    if (graph_connect[id_2].size() == 0) {
+        graph_connect.erase(id_2);
+    }
     // удаление индексов из списков смежности
 
     return 1;
@@ -124,8 +123,10 @@ void GraphPool::ConnectPools(unsigned long long amount) {  // соединени
 void GraphPool::UnconnectPools(unsigned long long amount) {  // разъединение бссейнов со случайными номерами
     unsigned long long i = 0;
     while (i < amount && i < amount_edges) {
+        std::cout << i << std::endl;
         if (UnconnectPool()) {  // если соединены, то увеличиваем количество пройденных
             ++i;
+            std::cout << i << std::endl;
         }
     }
     amount_edges -= i;
