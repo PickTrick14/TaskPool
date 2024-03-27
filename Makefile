@@ -10,7 +10,6 @@ build:
 
 debug:
 	$(CC) $(CFLAGS) $(DFLAGS) $(WORK_FILE) -o main_d
-	./main_d
 
 clean:
 	rm -rf main main_d

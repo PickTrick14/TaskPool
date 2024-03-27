@@ -30,8 +30,8 @@ int GraphPool::ConnectPool(unsigned long long id_1, unsigned long long id_2) {
     if (std::find(graph_connect[id_1].begin(), graph_connect[id_1].end(), id_2) != graph_connect[id_1].end()) { // если такая связь есть, то возвращаемся
         return 0;
     }
-    graph_connect[id_1].push_back(id_2);
-    graph_connect[id_2].push_back(id_1);
+    graph_connect[id_1].insert(id_2);
+    graph_connect[id_2].insert(id_1);
     // добавление индексов в списки смежности
 
     std::pair<double, unsigned long long> tmp = DfsLitres(id_1);
@@ -42,10 +42,12 @@ int GraphPool::ConnectPool(unsigned long long id_1, unsigned long long id_2) {
 }
 
 int GraphPool::UnconnectPool(unsigned long long id_1, unsigned long long id_2) {
-    if (std::find(graph_connect[id_1].begin(), graph_connect[id_1].end(), id_2) == graph_connect[id_1].end()) { // если такой связи нет, то возвращаемся
+    auto it_12 = std::find(graph_connect[id_1].begin(), graph_connect[id_1].end(), id_2);
+
+    if (it_12 == graph_connect[id_1].end()) { // если такой связи нет, то возвращаемся
         return 0;
     }
-    graph_connect[id_1].erase(std::find(graph_connect[id_1].begin(), graph_connect[id_1].end(), id_2));
+    graph_connect[id_1].erase(it_12);
     graph_connect[id_2].erase(std::find(graph_connect[id_2].begin(), graph_connect[id_2].end(), id_1));
     // удаление индексов из списков смежности
 
@@ -53,11 +55,6 @@ int GraphPool::UnconnectPool(unsigned long long id_1, unsigned long long id_2) {
 }
 
 GraphPool::GraphPool(unsigned long long amount, unsigned long long max) : max_litres(max) {  // создание графа (пока как отдельные бассейны) бассейнов
-    for (unsigned long long i = 0; i < amount; i++) {  // создаем вектор смежных бассейнов, пока связи нет ни у когоы
-        std::vector<unsigned long long> tmp{};
-        graph_connect.push_back(tmp);
-    }
-
     AddPools(amount);  // добавление бассейнов в список
 }
 
@@ -65,7 +62,7 @@ void GraphPool::AddPools(unsigned long long amount) {  // добавление �
     for (unsigned long long i = 0; i < amount; i++) {
         AddPool();
     }
-    size += amount;
+    this->size += amount;
     return;
 }
 
@@ -84,38 +81,31 @@ void GraphPool::FillPools(unsigned long long amount) {  // заполнение 
 }
 
 void GraphPool::ConnectPools(unsigned long long amount) {  // соединение бссейнов со случайными номерами
-    std::set<std::pair<unsigned long long, unsigned long long>> ids_pass;  // set из индексов, которые соединили
+
     unsigned long long i = 0;
-    while (i < amount && i < size) {
+    unsigned long long max_edges = size * (size - 1) / 2;
+
+    while (i < amount && i < max_edges) {
         unsigned long long id_1 = GetId();
         unsigned long long id_2 = GetId();
-        if (ids_pass.find({id_1, id_2}) == ids_pass.end()) {
-            ids_pass.insert({id_1, id_2});
-            ids_pass.insert({id_2, id_1});
-            if (!ConnectPool(id_1, id_2)) {  // если соединены, то ничего не делаем
-                continue;
-            }
-            ++i;
-        }
+        if (ConnectPool(id_1, id_2)) {  // если не соединены, то увеличиваем количество пройденных
+            i++;
+        }    
     }
+    amount_edges += i;
     return;
 }
 
 void GraphPool::UnconnectPools(unsigned long long amount) {  // разъединение бссейнов со случайными номерами
-    std::set<std::pair<unsigned long long, unsigned long long>> ids_pass;  // set из индексов, которые разъединили
     unsigned long long i = 0;
-    while (i < amount && i < size) {
+    while (i < amount && i < amount_edges) {
         unsigned long long id_1 = GetId();
         unsigned long long id_2 = GetId();
-        if (ids_pass.find({id_1, id_2}) == ids_pass.end()) {
-            ids_pass.insert({id_1, id_2});
-            ids_pass.insert({id_2, id_1});
-            if (!UnconnectPool(id_1, id_2)) {  // если не соединены, то ничего не делаем
-                continue;
-            }
+        if (UnconnectPool(id_1, id_2)) {  // если соединены, то увеличиваем количество пройденных
             ++i;
         }
     }
+    amount_edges -= i;
     return;
 }
 

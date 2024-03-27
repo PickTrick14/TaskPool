@@ -2,10 +2,10 @@
 #include <iostream>
 #include <chrono>
 
-constexpr unsigned long long N = 35000000;  //  35000000
-constexpr unsigned long long K = 11000000;  //  11000000
-constexpr unsigned long long L = 24000000;  // 24000000
-constexpr unsigned long long M = 4000000;  //  4000000
+constexpr unsigned long long N = 350000;  //  35000000
+constexpr unsigned long long K = 110000;  //  11000000
+constexpr unsigned long long L = 240000;  // 24000000
+constexpr unsigned long long M = 40000;  //  4000000
 constexpr unsigned int MAX_LITR = 500;
 
 
@@ -15,25 +15,32 @@ int main(void) {
     auto start = std::chrono::high_resolution_clock::now();
 
     std::cout << "Начало работы..." << std::endl;
-
+    std::cout << "Создание графа..." << std::endl;
     GraphPool net(N, MAX_LITR);
+    std::cout << "Создание графа COMPLETED" << std::endl;
 
+    std::cout << "Заполнение бассейнов №1..." << std::endl;
     net.FillPools(N);
-    net.ShowLitres();
-    std::cout << "Заполнение бассейнов..." << std::endl;
+    // net.ShowLitres();
+    std::cout << "Заполнение бассейнов №1 COMPLETED" << std::endl;
 
-    net.ConnectPools(K);
-    net.ShowLitres();
     std::cout << "Соединение бассейнов..." << std::endl;
+    net.ConnectPools(K);
+    // net.ShowLitres();
+    std::cout << "Соединение бассейнов COMPLETED" << std::endl;
 
+    std::cout << "Заполнение бассейнов №2..." << std::endl;
     net.FillPools(L);
-    net.ShowLitres();
-    std::cout << "Заполнение бассейнов..." << std::endl;
+    // net.ShowLitres();
+    std::cout << "Заполнение бассейнов №2 COMPLETED" << std::endl;
 
+    std::cout << "Разъединение бассейнов..." << std::endl;
     net.UnconnectPools(M);
+    std::cout << "Разъединение бассейнов COPMLETED" << std::endl;
+    std::cout << "Заполнение бассейнов №3..." << std::endl;
     net.FillPools(L);
-    net.ShowLitres();
-    std::cout << "Разъединение и заполнение бассейнов..." << std::endl;
+    // net.ShowLitres();
+    std::cout << "Заполнение бассейнов №3 COMPLETED" << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
 
