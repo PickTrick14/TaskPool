@@ -28,9 +28,9 @@ class GraphPool {
 
         void FillPool(unsigned long long id);  // заполнение бассейна водой от 1 до max_litres л
 
-        int ConnectPool(unsigned long long id_1, unsigned long long id_2);  // соединение бассейнов со случайными номерами
+        int ConnectPool();  // соединение бассейнов со случайными номерами
 
-        int UnconnectPool(unsigned long long id_1, unsigned long long id_2);  // разъединение бассейнов со случайными номерами
+        int UnconnectPool();  // разъединение бассейнов со случайными номерами
 
         std::pair<double, unsigned long long> DfsLitres(unsigned long long id, bool set_litr = false, double litr = 0);
 

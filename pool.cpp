@@ -26,7 +26,10 @@ void GraphPool::FillPool(unsigned long long id) {  // заполнение ба�
     return;
 }
 
-int GraphPool::ConnectPool(unsigned long long id_1, unsigned long long id_2) {
+int GraphPool::ConnectPool(void) {
+    unsigned long long id_1 = GetId();
+    unsigned long long id_2 = GetId();
+
     if (std::find(graph_connect[id_1].begin(), graph_connect[id_1].end(), id_2) != graph_connect[id_1].end()) { // если такая связь есть, то возвращаемся
         return 0;
     }
@@ -41,14 +44,21 @@ int GraphPool::ConnectPool(unsigned long long id_1, unsigned long long id_2) {
     return 1;
 }
 
-int GraphPool::UnconnectPool(unsigned long long id_1, unsigned long long id_2) {
-    auto it_12 = std::find(graph_connect[id_1].begin(), graph_connect[id_1].end(), id_2);
+int GraphPool::UnconnectPool() {
+    auto it_11 = graph_connect.begin();
+    std::advance(it_11, rand() % graph_connect.size());
+    auto it_12 = it_11->second.begin();
+    std::set<unsigned long long> tmp = it_11->second;
+    std::cout << tmp.size() << std::endl;
+    std::advance(it_12, rand() % tmp.size());
+    std::cout << 4 << std::endl;
 
-    if (it_12 == graph_connect[id_1].end()) { // если такой связи нет, то возвращаемся
-        return 0;
-    }
-    graph_connect[id_1].erase(it_12);
-    graph_connect[id_2].erase(std::find(graph_connect[id_2].begin(), graph_connect[id_2].end(), id_1));
+    unsigned long long id_1 = it_11->first;
+    std::cout << 5 << std::endl;
+    unsigned long long id_2 = *it_12;
+
+    graph_connect[id_1].erase(std::find(graph_connect[id_2].begin(), graph_connect[id_2].end(), id_1));
+    graph_connect[id_2].erase(it_12);
     // удаление индексов из списков смежности
 
     return 1;
@@ -86,9 +96,7 @@ void GraphPool::ConnectPools(unsigned long long amount) {  // соединени
     unsigned long long max_edges = size * (size - 1) / 2;
 
     while (i < amount && i < max_edges) {
-        unsigned long long id_1 = GetId();
-        unsigned long long id_2 = GetId();
-        if (ConnectPool(id_1, id_2)) {  // если не соединены, то увеличиваем количество пройденных
+        if (ConnectPool()) {  // если не соединены, то увеличиваем количество пройденных
             i++;
         }    
     }
@@ -99,9 +107,7 @@ void GraphPool::ConnectPools(unsigned long long amount) {  // соединени
 void GraphPool::UnconnectPools(unsigned long long amount) {  // разъединение бссейнов со случайными номерами
     unsigned long long i = 0;
     while (i < amount && i < amount_edges) {
-        unsigned long long id_1 = GetId();
-        unsigned long long id_2 = GetId();
-        if (UnconnectPool(id_1, id_2)) {  // если соединены, то увеличиваем количество пройденных
+        if (UnconnectPool()) {  // если соединены, то увеличиваем количество пройденных
             ++i;
         }
     }
