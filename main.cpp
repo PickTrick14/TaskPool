@@ -2,10 +2,10 @@
 #include <iostream>
 #include <chrono>
 
-constexpr unsigned long long N = 350000;  //  35000000
-constexpr unsigned long long K = 110000;  //  11000000
-constexpr unsigned long long L = 240000;  // 24000000
-constexpr unsigned long long M = 40000;  //  4000000
+constexpr unsigned long long N = 35000000;  //  35000000
+constexpr unsigned long long K = 11000000;  //  11000000
+constexpr unsigned long long L = 24000000;  // 24000000
+constexpr unsigned long long M = 4000000;  //  4000000
 constexpr unsigned int MAX_LITR = 500;
 
 
@@ -37,6 +37,7 @@ int main(void) {
     std::cout << "Разъединение бассейнов..." << std::endl;
     net.UnconnectPools(M);
     std::cout << "Разъединение бассейнов COPMLETED" << std::endl;
+    
     std::cout << "Заполнение бассейнов №3..." << std::endl;
     net.FillPools(L);
     // net.ShowLitres();

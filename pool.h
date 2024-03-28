@@ -26,11 +26,15 @@ class GraphPool {
 
         void AddPool();  // добавление бассейна в список
 
-        void FillPool(unsigned long long id);  // заполнение бассейна водой от 1 до max_litres л
+        int FillPool(std::set<unsigned long long> &id_pass);  // заполнение бассейна водой от 1 до max_litres л
 
         int ConnectPool();  // соединение бассейнов со случайными номерами
 
         int UnconnectPool();  // разъединение бассейнов со случайными номерами
+
+        void SetNewSumLitresLink(unsigned long long id);
+
+        void SetNewSumLitres();
 
         std::pair<double, unsigned long long> DfsLitres(unsigned long long id, bool set_litr = false, double litr = 0);
 

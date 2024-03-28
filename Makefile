@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-Wall -Wextra -Werror
+CFLAGS=-Wall -Wextra -Werror -fopenmp -g
 DFLAGS=-fsanitize=address,undefined -g
 WORK_FILE=./main.cpp ./pool.cpp
 
