@@ -30,15 +30,19 @@ int GraphPool::ConnectPool() {
     unsigned long long id_1 = GetId();
     unsigned long long id_2 = GetId();
 
+    bool flag = 1;
+
     if (graph_connect.find(id_1) == graph_connect.end()) {  // если списка смежности для бассейна id_1 нет, то создаем
         graph_connect[id_1] = std::set<unsigned long long>();
+        flag = 0;
     }
 
     if (graph_connect.find(id_2) == graph_connect.end()) {  // если списка смежности для бассейна id_2 нет, то создаем
         graph_connect[id_2] = std::set<unsigned long long>();
+        flag = 0;
     }
 
-    if (std::find(graph_connect[id_1].begin(), graph_connect[id_1].end(), id_2) != graph_connect[id_1].end()) { // если такая связь есть, то возвращаемся
+    if (flag && std::find(graph_connect[id_1].begin(), graph_connect[id_1].end(), id_2) != graph_connect[id_1].end()) { // если такая связь есть, то возвращаемся
         return 0;
     }
 
