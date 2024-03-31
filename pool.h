@@ -32,8 +32,6 @@ class GraphPool {
 
         int UnconnectPool();  // разъединение бассейнов со случайными номерами
 
-        void SetNewSumLitresLink(unsigned long long id);
-
         void SetNewSumLitres();
 
         std::pair<double, unsigned long long> DfsLitres(unsigned long long id, std::vector<bool> &pass, bool set_litr = false, double litr = 0);

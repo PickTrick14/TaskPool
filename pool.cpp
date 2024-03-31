@@ -61,10 +61,6 @@ int GraphPool::UnconnectPool() {
     auto it_12 = it_11->second.begin();
     std::set<unsigned long long> tmp = it_11->second;
 
-    if (tmp.size() == 0) {  // если гонка (ещё set не удалили), то выходим из функции, т.к. связей нет
-        return 0;
-    }
-
     std::advance(it_12, rand() % tmp.size());
 
     unsigned long long id_1 = it_11->first;
@@ -154,16 +150,6 @@ void GraphPool::ShowLitres() {
     return;
 }
 
-/* void GraphPool::SetNewSumLitresLink(unsigned long long id) {  // уставновление нового объема воды в бассейнах
-
-    std::pair<double, unsigned long long> tmp = DfsLitres(id);   // сумма литров и количество бассейнов в одной связи
-    double new_sum = tmp.first;
-    unsigned long long new_amount = tmp.second;
-    DfsLitres(id, true, new_sum / new_amount);  // установление нового количества воды в бассейнах в связи и их количества
-
-    return;
-} */
-
 void GraphPool::SetNewSumLitres() {
     auto it = graph_connect.begin();
     std::vector<bool> ids_pass(size, false);
@@ -178,11 +164,6 @@ void GraphPool::SetNewSumLitres() {
             ++it;
         }
     }
-
-    /* #pragma omp parallel for shared(graph_connect) schedule(dynamic)
-        for (std::map<unsigned long long, std::set<unsigned long long>>::iterator it = graph_connect.begin(); it != graph_connect.end(); it++) {
-            SetNewSumLitresLink(it->first);
-        } */
 
     return;
 }
