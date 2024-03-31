@@ -36,7 +36,7 @@ class GraphPool {
 
         void SetNewSumLitres();
 
-        std::pair<double, unsigned long long> DfsLitres(unsigned long long id, bool set_litr = false, double litr = 0);
+        std::pair<double, unsigned long long> DfsLitres(unsigned long long id, std::vector<bool> &pass, bool set_litr = false, double litr = 0);
 
     public:
         GraphPool(unsigned long long amount, unsigned long long max);  // создание графа (пока как отдельные бассейны) бассейнов

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <stack>
 #include <omp.h>
+#include <chrono>
 #include "pool.h"
 
 unsigned long long GraphPool::GetId() const {
@@ -117,13 +118,14 @@ void GraphPool::ConnectPools(unsigned long long amount) {  // соединени
     unsigned long long i = 0;
     unsigned long long limit = std::min(amount, size * (size - 1) / 2);  // максимальное количество соединений
 
-    #pragma omp parallel for shared(i, limit) schedule(dynamic)  // параллельные вычисления, т.к. надо только добавлять в соединения
-        for (i = 0; i < limit; ++i) {
-            if (!ConnectPool()) {
-                --i;
-            }
+    for (i = 0; i < limit; ++i) {
+        if (!ConnectPool()) {
+            --i;
         }
+    }
+
     SetNewSumLitres();  // пересчет литров в бассейнах
+
     amount_edges += i;
     return;
 }
@@ -132,12 +134,12 @@ void GraphPool::UnconnectPools(unsigned long long amount) {  // разъедин
     unsigned long long i = 0;
     unsigned long long limit = std::min(amount_edges, amount);  // максимальное количество разъединений
 
-    #pragma omp parallel for shared(i, limit, graph_connect) schedule(dynamic)  // параллельные вычисления, т.к. надо только убрать в соединения
-        for (i = 0; i < limit; ++i) {
-            if (!UnconnectPool()) {
-                --i;
-            }
+    // #pragma omp parallel for shared(i, limit, graph_connect) schedule(dynamic)  // параллельные вычисления, т.к. надо только убрать в соединения
+    for (i = 0; i < limit; ++i) {
+        if (!UnconnectPool()) {
+            --i;
         }
+    }
     amount_edges -= i;
     return;
 }
@@ -152,7 +154,7 @@ void GraphPool::ShowLitres() {
     return;
 }
 
-void GraphPool::SetNewSumLitresLink(unsigned long long id) {  // уставновление нового объема воды в бассейнах
+/* void GraphPool::SetNewSumLitresLink(unsigned long long id) {  // уставновление нового объема воды в бассейнах
 
     std::pair<double, unsigned long long> tmp = DfsLitres(id);   // сумма литров и количество бассейнов в одной связи
     double new_sum = tmp.first;
@@ -160,16 +162,19 @@ void GraphPool::SetNewSumLitresLink(unsigned long long id) {  // уставно�
     DfsLitres(id, true, new_sum / new_amount);  // установление нового количества воды в бассейнах в связи и их количества
 
     return;
-}
+} */
 
 void GraphPool::SetNewSumLitres() {
     auto it = graph_connect.begin();
-    std::set<unsigned long long> ids_pass;
+    std::vector<bool> ids_pass(size, false);
 
     while (it != graph_connect.end()) {
-        if (ids_pass.find(it->first) == ids_pass.end()) {
-            ids_pass.insert(it->first);
-            SetNewSumLitresLink(it->first);
+        if (!ids_pass[it->first]) {
+            ids_pass[it->first] = true;
+            std::pair<double, unsigned long long> tmp = DfsLitres(it->first, ids_pass);   // сумма литров и количество бассейнов в одной связи
+            double new_sum = tmp.first;
+            unsigned long long new_amount = tmp.second;
+            DfsLitres(it->first, ids_pass, true, new_sum / new_amount);
             ++it;
         }
     }
@@ -182,7 +187,7 @@ void GraphPool::SetNewSumLitres() {
     return;
 }
 
-std::pair<double, unsigned long long> GraphPool::DfsLitres(unsigned long long id, bool set_litr, double litr) {
+std::pair<double, unsigned long long> GraphPool::DfsLitres(unsigned long long id, std::vector<bool> &pass, bool set_litr, double litr) {
 
     double res_litr = pools[id].GetLitres();
     unsigned long long res_count = 1;
@@ -191,19 +196,16 @@ std::pair<double, unsigned long long> GraphPool::DfsLitres(unsigned long long id
         pools[id].SetLitres(litr);
     }
 
-    std::vector<bool> visit_ids(size, false);  // вектор из значений, прошли вершину или нет
-    visit_ids[id] = true;
-
     std::stack<unsigned long long> q;  // стек из индексов бассейнов, которые ещё не обработаны
     q.push(id);
     while (!q.empty()) {
         unsigned long long cur_neigh = q.top();
         q.pop();
 
-        if (graph_connect.find(cur_neigh) != graph_connect.end()) {
+        // if (graph_connect.find(cur_neigh) != graph_connect.end()) {
             for (unsigned long long neighbor : graph_connect[cur_neigh]) {
-                if (!visit_ids[neighbor]) {
-                    visit_ids[neighbor] = true;
+                if (!pass[neighbor]) {
+                    pass[neighbor] = true;
                     q.push(neighbor);
 
                     if (!set_litr) {  // не если уставновлен флаг на пересчет воды в бассейнах, то добавляем в сумму
@@ -214,7 +216,7 @@ std::pair<double, unsigned long long> GraphPool::DfsLitres(unsigned long long id
                     }
                 }
             }
-        }
+        // }
     }
 
     return std::make_pair(res_litr, res_count);

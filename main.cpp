@@ -2,10 +2,10 @@
 #include <iostream>
 #include <chrono>
 
-constexpr unsigned long long N = 3500000;  //  35000000
-constexpr unsigned long long K = 1100000;  //  11000000
-constexpr unsigned long long L = 2400000;  // 24000000
-constexpr unsigned long long M = 400000;  //  4000000
+constexpr unsigned long long N = 350000;  //  35000000
+constexpr unsigned long long K = 110000;  //  11000000
+constexpr unsigned long long L = 240000;  // 24000000
+constexpr unsigned long long M = 40000;  //  4000000
 constexpr unsigned int MAX_LITR = 500;
 
 
