@@ -18,7 +18,9 @@ class GraphPool {
     private:
         std::vector<Pool> pools;  // вектор хранения объектов "Бассейн"
         unsigned long long size;  // количество бассейнов в графе
-        std::map<unsigned long long, std::set<unsigned long long>> graph_connect;    // словарь смежности бассейнов
+        std::vector<unsigned long long> graph_connect_ind;    // словарь смежности бассейнов
+        std::vector<std::set<unsigned long long>> graph_connect_edge;
+
         unsigned long long max_litres;  // максимальный объем воды для добавленияль
         unsigned long long amount_edges;  // количество связей в графе
 

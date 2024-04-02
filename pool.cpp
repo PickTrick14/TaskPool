@@ -28,27 +28,41 @@ int GraphPool::FillPool(std::set<unsigned long long> &id_pass) {  // запол�
 }
 
 int GraphPool::ConnectPool() {
+
     unsigned long long id_1 = GetId();
     unsigned long long id_2 = GetId();
 
-    bool flag = 1;
-
-    if (graph_connect.find(id_1) == graph_connect.end()) {  // если списка смежности для бассейна id_1 нет, то создаем
-        graph_connect[id_1] = std::set<unsigned long long>();
-        flag = 0;
-    }
-
-    if (graph_connect.find(id_2) == graph_connect.end()) {  // если списка смежности для бассейна id_2 нет, то создаем
-        graph_connect[id_2] = std::set<unsigned long long>();
-        flag = 0;
-    }
-
-    if (flag && std::find(graph_connect[id_1].begin(), graph_connect[id_1].end(), id_2) != graph_connect[id_1].end()) { // если такая связь есть, то возвращаемся
+    if (id_1 == id_2) {
         return 0;
     }
 
-    graph_connect[id_1].insert(id_2);
-    graph_connect[id_2].insert(id_1);
+    bool flag = true;
+    auto it_1 = std::find(graph_connect_ind.begin(), graph_connect_ind.end(), id_1);
+    unsigned long long ind_edge_1 = it_1 - graph_connect_ind.begin();
+
+    if (it_1 == graph_connect_ind.end()) {
+        graph_connect_ind.push_back(id_1);
+        ind_edge_1 = graph_connect_ind.size() - 1;
+        graph_connect_edge.push_back(std::set<unsigned long long>());
+        flag = false;
+    }
+
+    auto it_2 = std::find(graph_connect_ind.begin(), graph_connect_ind.end(), id_2);
+    unsigned long long ind_edge_2 = it_2 - graph_connect_ind.begin();
+
+    if (it_2 == graph_connect_ind.end()) {
+        graph_connect_ind.push_back(id_2);
+        ind_edge_2 = graph_connect_ind.size() - 1;
+        graph_connect_edge.push_back(std::set<unsigned long long>());
+        flag = false;
+    }
+    
+    if (flag && std::find(graph_connect_ind.begin(), graph_connect_ind.end(), id_2) != graph_connect_ind.end()) { // если такая связь есть, то возвращаемся
+        return 0;
+    }
+
+    graph_connect_edge[ind_edge_1].insert(id_2);
+    graph_connect_edge[ind_edge_2].insert(id_1);
     // добавление индексов в списки смежности
 
     return 1;
@@ -56,33 +70,46 @@ int GraphPool::ConnectPool() {
 
 int GraphPool::UnconnectPool() {
 
-    auto it_11 = graph_connect.begin();
-    std::advance(it_11, rand() % graph_connect.size());
-    auto it_12 = it_11->second.begin();
-    std::set<unsigned long long> tmp = it_11->second;
+    unsigned long long offset_1 = GetId() % graph_connect_ind.size();
+    unsigned long long offset_2 = GetId() % graph_connect_ind.size();
 
-    std::advance(it_12, rand() % tmp.size());
+    unsigned long long id_1 = graph_connect_ind[offset_1];
+    unsigned long long id_2 = graph_connect_ind[offset_2];
 
-    unsigned long long id_1 = it_11->first;
-    unsigned long long id_2 = *it_12;
-
-    graph_connect[id_2].erase(std::find(graph_connect[id_2].begin(), graph_connect[id_2].end(), id_1));
-    graph_connect[id_1].erase(it_12);
-
-    if (graph_connect[id_1].size() == 0) {
-        graph_connect.erase(id_1);
+    if (id_1 == id_2) {
+        return 0;
     }
 
-    if (graph_connect[id_2].size() == 0) {
-        graph_connect.erase(id_2);
+    auto it_12 = graph_connect_edge[offset_2].find(id_1);
+
+    if (it_12 == graph_connect_edge[offset_2].end()) {
+        return 0;
     }
+
+    auto it_21 = graph_connect_edge[offset_1].find(id_2);
+
+    graph_connect_edge[offset_2].erase(it_12);
+    graph_connect_edge[offset_1].erase(it_21);
+
+    if (graph_connect_edge[offset_2].size() == 0) {
+        graph_connect_ind.erase(graph_connect_ind.begin() + offset_2);
+        graph_connect_edge.erase(graph_connect_edge.begin() + offset_2);
+    }
+
+    if (graph_connect_edge[offset_1].size() == 0) {
+        graph_connect_ind.erase(graph_connect_ind.begin() + offset_1);
+        graph_connect_edge.erase(graph_connect_edge.begin() + offset_1);
+    }
+
+
     // удаление индексов из списков смежности
 
     return 1;
 }
 
 GraphPool::GraphPool(unsigned long long amount, unsigned long long max) : max_litres(max) {  // создание графа (пока как отдельные бассейны) бассейнов
-    graph_connect = std::map<unsigned long long, std::set<unsigned long long>>{};
+    graph_connect_edge = std::vector<std::set<unsigned long long>>{};
+    graph_connect_ind = std::vector<unsigned long long>{};
     AddPools(amount);  // добавление бассейнов в список
 }
 
@@ -130,7 +157,6 @@ void GraphPool::UnconnectPools(unsigned long long amount) {  // разъедин
     unsigned long long i = 0;
     unsigned long long limit = std::min(amount_edges, amount);  // максимальное количество разъединений
 
-    // #pragma omp parallel for shared(i, limit, graph_connect) schedule(dynamic)  // параллельные вычисления, т.к. надо только убрать в соединения
     for (i = 0; i < limit; ++i) {
         if (!UnconnectPool()) {
             --i;
@@ -151,18 +177,18 @@ void GraphPool::ShowLitres() {
 }
 
 void GraphPool::SetNewSumLitres() {
-    auto it = graph_connect.begin();
+    auto it = graph_connect_edge.begin();
     std::vector<bool> ids_pass(size, false);
 
-    while (it != graph_connect.end()) {
-        if (!ids_pass[it->first]) {
-            ids_pass[it->first] = true;
-            std::pair<double, unsigned long long> tmp = DfsLitres(it->first, ids_pass);   // сумма литров и количество бассейнов в одной связи
+    while (it != graph_connect_edge.end()) {
+        if (!ids_pass[graph_connect_ind[it - graph_connect_edge.begin()]]) {
+            ids_pass[graph_connect_ind[it - graph_connect_edge.begin()]] = true;
+            std::pair<double, unsigned long long> tmp = DfsLitres(graph_connect_ind[it - graph_connect_edge.begin()], ids_pass);   // сумма литров и количество бассейнов в одной связи
             double new_sum = tmp.first;
             unsigned long long new_amount = tmp.second;
-            DfsLitres(it->first, ids_pass, true, new_sum / new_amount);
-            ++it;
+            DfsLitres(graph_connect_ind[it - graph_connect_edge.begin()], ids_pass, true, new_sum / new_amount);
         }
+        ++it;
     }
 
     return;
@@ -183,8 +209,10 @@ std::pair<double, unsigned long long> GraphPool::DfsLitres(unsigned long long id
         unsigned long long cur_neigh = q.top();
         q.pop();
 
-        // if (graph_connect.find(cur_neigh) != graph_connect.end()) {
-            for (unsigned long long neighbor : graph_connect[cur_neigh]) {
+        auto it = std::find(graph_connect_ind.begin(), graph_connect_ind.end(), cur_neigh);
+
+        if (it != graph_connect_ind.end()) {
+            for (unsigned long long neighbor : graph_connect_edge[it - graph_connect_ind.begin()]) {
                 if (!pass[neighbor]) {
                     pass[neighbor] = true;
                     q.push(neighbor);
@@ -197,7 +225,7 @@ std::pair<double, unsigned long long> GraphPool::DfsLitres(unsigned long long id
                     }
                 }
             }
-        // }
+        }
     }
 
     return std::make_pair(res_litr, res_count);
