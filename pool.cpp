@@ -5,6 +5,7 @@
 #include <stack>
 #include <omp.h>
 #include <chrono>
+#include <iterator>
 #include "pool.h"
 
 unsigned long long GraphPool::GetId() const {
@@ -71,22 +72,20 @@ int GraphPool::ConnectPool() {
 int GraphPool::UnconnectPool() {
 
     unsigned long long offset_1 = GetId() % graph_connect_ind.size();
-    unsigned long long offset_2 = GetId() % graph_connect_ind.size();
+    unsigned long long offset_12 = GetId() % graph_connect_edge[offset_1].size();  
+
+    // где-то здесь почему-то размер 0 у set
+
+    auto tmp_it = (graph_connect_edge[offset_1]).begin();
+    std::advance(tmp_it, offset_12);
 
     unsigned long long id_1 = graph_connect_ind[offset_1];
-    unsigned long long id_2 = graph_connect_ind[offset_2];
+    unsigned long long id_2 = *tmp_it;
 
-    if (id_1 == id_2) {
-        return 0;
-    }
+    unsigned long long offset_2 = std::find(graph_connect_ind.begin(), graph_connect_ind.end(), id_2) - graph_connect_ind.begin();
 
+    auto it_21 = tmp_it;
     auto it_12 = graph_connect_edge[offset_2].find(id_1);
-
-    if (it_12 == graph_connect_edge[offset_2].end()) {
-        return 0;
-    }
-
-    auto it_21 = graph_connect_edge[offset_1].find(id_2);
 
     graph_connect_edge[offset_2].erase(it_12);
     graph_connect_edge[offset_1].erase(it_21);
