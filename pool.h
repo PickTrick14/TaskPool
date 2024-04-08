@@ -1,7 +1,7 @@
 #ifndef POOL_H
+#define POOL_H
 
 #include <vector>
-#include <set>
 #include <unordered_set>
 
 class Pool {
@@ -34,7 +34,7 @@ class GraphPool {
 
         unsigned long long max_litres;  // максимальный объем воды для добавленияль
         unsigned long long amount_edges;  // количество связей в графе
-        std::set<unsigned long long> ids_connect;  // индексы, которые имеют связанные бассейны
+        std::unordered_set<unsigned long long> ids_connect;  // индексы, которые имеют связанные бассейны
 
         unsigned long long GetId() const;
 
