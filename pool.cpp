@@ -1,5 +1,4 @@
 #include <iostream>
-#include <set>
 #include <unordered_set>
 #include <vector>
 #include <algorithm>
@@ -66,22 +65,7 @@ int GraphPool::ConnectPool(std::unordered_set<unsigned long long> &id_pass) {
 
 }
 
-#include <random>
-
-unsigned long long getRandomElement(const std::unordered_set<unsigned long long>& mySet) {
-    
-    unsigned long long randomIndex = rand() % mySet.size();
-    auto it = mySet.begin();
-    std::advance(it, randomIndex);
-    return *it;
-}
-
-
 int GraphPool::UnconnectPool() {
-    /* unsigned long long id_1 = getRandomElement(ids_connect);
-
-    std::unordered_set<unsigned long long> *connect_1 = pools[id_1].id_connect;
-    unsigned long long id_2 = getRandomElement(*connect_1); */
 
     unsigned long long id_1 = *(ids_connect.begin());
     unsigned long long id_2 = *(pools[id_1].id_connect->begin());
