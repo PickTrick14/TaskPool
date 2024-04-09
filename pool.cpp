@@ -5,14 +5,14 @@
 #include <stack>
 #include "pool.h"
 
-void Pool::AddIdConnect(unsigned long long id) { 
+void Pool::AddIdConnect(unsigned int id) { 
     if (id_connect == nullptr) {
-        id_connect = new std::unordered_set<unsigned long long>;
+        id_connect = new std::unordered_set<unsigned int>;
     }
     (*id_connect).insert(id);  
 }
 
-void Pool::RemoveIdConnect(unsigned long long id) {
+void Pool::RemoveIdConnect(unsigned int id) {
     if (id_connect != nullptr) {
         (*id_connect).erase(id);
     }
@@ -22,29 +22,28 @@ void Pool::RemoveIdConnect(unsigned long long id) {
     }
 }
 
-unsigned long long GraphPool::GetId() const {
+unsigned int GraphPool::GetId() const {
     return rand() % size;
 }
 
-int GraphPool::FillPool(std::unordered_set<unsigned long long> &id_pass) {
-    unsigned long long id = GetId();
-    if (id_pass.find(id) != id_pass.end()) {
-        return 0;
+void GraphPool::FillPool(std::unordered_set<unsigned int> &id_pass) {
+    unsigned int id = GetId();
+    while (id_pass.find(id) != id_pass.end()) {
+        id = GetId();
     }
     id_pass.insert(id);
     pools[id].AddLitres(rand() % max_litres + 1);
-    return 1;
 }
 
-int GraphPool::ConnectPool(std::unordered_set<unsigned long long> &id_pass) {
-    unsigned long long id_1 = GetId();
-    unsigned long long id_2 = GetId();
+int GraphPool::ConnectPool(std::unordered_set<unsigned int> &id_pass) {
+    unsigned int id_1 = GetId();
+    unsigned int id_2 = GetId();
 
     if (id_1 == id_2) {
         return 0;
     }
 
-    std::unordered_set<unsigned long long> *connect_1 = pools[id_1].id_connect;
+    std::unordered_set<unsigned int> *connect_1 = pools[id_1].id_connect;
 
     if (pools[id_1].id_connect != nullptr) {
         if ((*connect_1).find(id_2) != (*connect_1).end()) {
@@ -67,8 +66,8 @@ int GraphPool::ConnectPool(std::unordered_set<unsigned long long> &id_pass) {
 
 int GraphPool::UnconnectPool() {
 
-    unsigned long long id_1 = *(ids_connect.begin());
-    unsigned long long id_2 = *(pools[id_1].id_connect->begin());
+    unsigned int id_1 = *(ids_connect.begin());
+    unsigned int id_2 = *(pools[id_1].id_connect->begin());
 
     pools[id_1].RemoveIdConnect(id_2);
     pools[id_2].RemoveIdConnect(id_1);
@@ -84,18 +83,17 @@ int GraphPool::UnconnectPool() {
     return 1;
 }
 
-GraphPool::GraphPool(unsigned long long amount, unsigned long long max) : size(amount), max_litres(max), amount_edges(0) {
+GraphPool::GraphPool(unsigned int amount, unsigned int max) : size(amount), max_litres(max), amount_edges(0) {
     pools = std::vector<Pool>(size);
 }
 
-void GraphPool::FillPools(unsigned long long amount) {
-    unsigned long long i = 0;
-    std::unordered_set<unsigned long long> *id_pass = new std::unordered_set<unsigned long long>();
+void GraphPool::FillPools(unsigned int amount) {
+    unsigned int i = 0;
+    std::unordered_set<unsigned int> *id_pass = new std::unordered_set<unsigned int>();
 
     while (i < amount && i < size) {
-        if (FillPool(*id_pass)) {
-            ++i;
-        }
+        FillPool(*id_pass);
+        ++i;
     }
 
     SetNewSumLitres(*id_pass);
@@ -103,10 +101,10 @@ void GraphPool::FillPools(unsigned long long amount) {
     delete id_pass;
 }
 
-void GraphPool::ConnectPools(unsigned long long amount) {
-    unsigned long long i = 0;
-    unsigned long long limit = std::min(amount, size * (size - 1) / 2);
-    std::unordered_set<unsigned long long> *id_pass = new std::unordered_set<unsigned long long>();
+void GraphPool::ConnectPools(unsigned int amount) {
+    unsigned int i = 0;
+    unsigned int limit = std::min(amount, size * (size - 1) / 2);
+    std::unordered_set<unsigned int> *id_pass = new std::unordered_set<unsigned int>();
 
     while (i < limit) {
         if (ConnectPool(*id_pass)) {
@@ -117,8 +115,8 @@ void GraphPool::ConnectPools(unsigned long long amount) {
     delete id_pass;
 }
 
-void GraphPool::UnconnectPools(unsigned long long amount) {
-    unsigned long long i = 0;
+void GraphPool::UnconnectPools(unsigned int amount) {
+    unsigned int i = 0;
     while (i < amount && i < amount_edges) {
         if (UnconnectPool()) {
             ++i;
@@ -127,22 +125,22 @@ void GraphPool::UnconnectPools(unsigned long long amount) {
 }
 
 void GraphPool::ShowLitres() {
-    unsigned long long i = 0;
+    unsigned int i = 0;
     for (; i < size; ++i) {
         std::cout << "Pool №" << i << ": " << pools[i].GetLitres() << std::endl;
     }
 }
 
-void GraphPool::SetNewSumLitres(std::unordered_set<unsigned long long> &id_need) {
+void GraphPool::SetNewSumLitres(std::unordered_set<unsigned int> &id_need) {
     auto it = id_need.begin();
     std::vector<bool> *ids_pass = new std::vector<bool>(size, false);
 
     while (it != id_need.end()) {
         if (!(*ids_pass)[*it]) {
             (*ids_pass)[*it] = true;
-            std::pair<double, unsigned long long> tmp = DfsLitres(*it, *ids_pass);   // сумма литров и количество бассейнов в одной связи
+            std::pair<double, unsigned int> tmp = DfsLitres(*it, *ids_pass);   // сумма литров и количество бассейнов в одной связи
             double new_sum = tmp.first;
-            unsigned long long new_amount = tmp.second;
+            unsigned int new_amount = tmp.second;
             DfsLitres(*it, *ids_pass, true, new_sum / new_amount); 
         }
         ++it;
@@ -153,25 +151,25 @@ void GraphPool::SetNewSumLitres(std::unordered_set<unsigned long long> &id_need)
     return;
 }
 
-std::pair<double, unsigned long long> GraphPool::DfsLitres(unsigned long long id, std::vector<bool> &pass, bool set_litr, double litr) {
+std::pair<double, unsigned int> GraphPool::DfsLitres(unsigned int id, std::vector<bool> &pass, bool set_litr, double litr) {
 
     double res_litr = pools[id].GetLitres();
-    unsigned long long res_count = 1;
+    unsigned int res_count = 1;
 
     if (set_litr) {  // если уставновлен флаг на пересчет воды в бассейнах
         pools[id].SetLitres(litr);
     }
 
-    std::stack<unsigned long long> q;  // стек из индексов бассейнов, которые ещё не обработаны
+    std::stack<unsigned int> q;  // стек из индексов бассейнов, которые ещё не обработаны
     q.push(id);
     while (!q.empty()) {
-        unsigned long long cur_neigh = q.top();
+        unsigned int cur_neigh = q.top();
         q.pop();
 
         auto graph_connect = pools[cur_neigh].id_connect;
 
         if (graph_connect != nullptr) {
-            for (unsigned long long neighbor : *graph_connect) {
+            for (unsigned int neighbor : *graph_connect) {
                 if (!pass[neighbor]) {
                     pass[neighbor] = true;
                     q.push(neighbor);
