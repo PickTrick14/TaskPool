@@ -30,7 +30,6 @@ class Pool {
 class GraphPool {
     private:
         std::vector<Pool> pools;  // вектор хранения объектов "Бассейн"
-        unsigned int size;  // количество бассейнов в графе
 
         unsigned int max_litres;  // максимальный объем воды для добавленияль
         unsigned int amount_edges;  // количество связей в графе
@@ -46,7 +45,7 @@ class GraphPool {
 
         void SetNewSumLitres(std::unordered_set<unsigned int> &id_pass);
 
-        std::pair<double, unsigned int> DfsLitres(unsigned int id, std::vector<bool> &pass, bool set_litr = false, double litr = 0);
+        void DfsLitres(unsigned int id, std::vector<bool> &pass, bool set_litr = false, double litr = 0);
 
     public:
         GraphPool(unsigned int amount, unsigned int max);  // создание графа (пока как отдельные бассейны) бассейнов
