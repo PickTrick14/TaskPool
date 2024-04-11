@@ -35,21 +35,16 @@ void GraphPool::FillPool(std::unordered_set<unsigned int> &id_pass) {
     pools[id].AddLitres(rand() % max_litres + 1);
 }
 
-int GraphPool::ConnectPool(std::unordered_set<unsigned int> &id_pass) {
+void GraphPool::ConnectPool(std::unordered_set<unsigned int> &id_pass) {
     unsigned int id_1 = GetId();
-    std::unordered_set<unsigned int> *connect_1 = pools[id_1].id_connect;
     unsigned int id_2 = GetId();
-
-    while (id_1 == id_2) {
-        id_2 = GetId();
-    }
-
+    std::unordered_set<unsigned int> *connect_1 = pools[id_1].id_connect;
     std::unordered_set<unsigned int> *connect_2 = pools[id_2].id_connect;
 
-    if (connect_1 != nullptr && connect_2 != nullptr) {
-        if ((*connect_1).find(id_2) != (*connect_1).end()) {
-            return 0;
-        }
+    while (id_1 == id_2 || (connect_1 != nullptr && connect_2 != nullptr && 
+            (*connect_1).find(id_2) != (*connect_1).end())) {
+        id_2 = GetId();
+        connect_2 = pools[id_2].id_connect;
     }
 
     pools[id_1].AddIdConnect(id_2);
@@ -60,8 +55,6 @@ int GraphPool::ConnectPool(std::unordered_set<unsigned int> &id_pass) {
 
     ++amount_edges;
     id_pass.insert(id_1);
-
-    return 1;
 }
 
 int GraphPool::UnconnectPool() {
@@ -108,9 +101,8 @@ void GraphPool::ConnectPools(unsigned int amount) {
     std::unordered_set<unsigned int> *id_pass = new std::unordered_set<unsigned int>();
 
     while (i < limit) {
-        if (ConnectPool(*id_pass)) {
-            ++i;
-        }
+        ConnectPool(*id_pass);
+        ++i;
     }
     SetNewSumLitres(*id_pass);
     delete id_pass;

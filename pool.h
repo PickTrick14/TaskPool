@@ -39,7 +39,7 @@ class GraphPool {
 
         void FillPool(std::unordered_set<unsigned int> &id_pass);  // заполнение бассейна водой от 1 до max_litres л
 
-        int ConnectPool(std::unordered_set<unsigned int> &id_pass);  // соединение бассейнов со случайными номерами
+        void ConnectPool(std::unordered_set<unsigned int> &id_pass);  // соединение бассейнов со случайными номерами
 
         int UnconnectPool();  // разъединение бассейнов со случайными номерами
 
