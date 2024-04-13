@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <stack>
+#include <chrono>
 #include "pool.h"
 
 void Pool::AddIdConnect(unsigned int id) { 
@@ -28,7 +29,7 @@ unsigned int GraphPool::GetId() const {
 
 void GraphPool::FillPool(std::unordered_set<unsigned int> &id_pass) {
     unsigned int id = GetId();
-    while (id_pass.find(id) != id_pass.end()) {
+    while (id_pass.find(id)!= id_pass.end()) {
         id = GetId();
     }
     id_pass.insert(id);
@@ -38,13 +39,10 @@ void GraphPool::FillPool(std::unordered_set<unsigned int> &id_pass) {
 void GraphPool::ConnectPool(std::unordered_set<unsigned int> &id_pass) {
     unsigned int id_1 = GetId();
     unsigned int id_2 = GetId();
-    std::unordered_set<unsigned int> *connect_1 = pools[id_1].id_connect;
-    std::unordered_set<unsigned int> *connect_2 = pools[id_2].id_connect;
 
-    while (id_1 == id_2 || (connect_1 != nullptr && connect_2 != nullptr && 
-            (*connect_1).find(id_2) != (*connect_1).end())) {
+    while (id_1 == id_2 || (pools[id_1].id_connect != nullptr && pools[id_2].id_connect != nullptr && 
+            (*pools[id_1].id_connect).find(id_2) != (*pools[id_1].id_connect).end())) {
         id_2 = GetId();
-        connect_2 = pools[id_2].id_connect;
     }
 
     pools[id_1].AddIdConnect(id_2);
@@ -76,36 +74,44 @@ int GraphPool::UnconnectPool() {
     return 1;
 }
 
-GraphPool::GraphPool(unsigned int amount, unsigned int max) : max_litres(max), amount_edges(0) {
+GraphPool::GraphPool(unsigned int amount, unsigned int max) : max_litres(max), amount_edges(0), first_filled(false) {
     pools = std::vector<Pool>(amount);
 }
 
 void GraphPool::FillPools(unsigned int amount) {
-    unsigned int i = 0;
-    unsigned int limit = std::min(amount, (unsigned int) pools.size());
-    std::unordered_set<unsigned int> *id_pass = new std::unordered_set<unsigned int>();
 
-    while (i < limit) {
-        FillPool(*id_pass);
-        ++i;
+    std::unordered_set<unsigned int> id_pass{};
+    if (amount == pools.size()) {
+        for (unsigned int i = 0; i < pools.size(); i++) {
+            pools[i].AddLitres(rand() % max_litres + 1);
+        }
+    } else {
+        unsigned int i = 0;
+        unsigned int limit = std::min(amount, (unsigned int) pools.size());
+        while (i < limit) {
+            FillPool(id_pass);
+            ++i;
+        }
     }
 
-    SetNewSumLitres(*id_pass);
+    if (first_filled) {
+        SetNewSumLitres(id_pass);
+    }
 
-    delete id_pass;
+    first_filled = true;
 }
 
 void GraphPool::ConnectPools(unsigned int amount) {
     unsigned int i = 0;
     unsigned int limit = std::min(amount, (unsigned int) (pools.size() * (pools.size() - 1) / 2));
-    std::unordered_set<unsigned int> *id_pass = new std::unordered_set<unsigned int>();
+    std::unordered_set<unsigned int> id_pass{};
 
     while (i < limit) {
-        ConnectPool(*id_pass);
+        ConnectPool(id_pass);
         ++i;
     }
-    SetNewSumLitres(*id_pass);
-    delete id_pass;
+
+    SetNewSumLitres(id_pass);
 }
 
 void GraphPool::UnconnectPools(unsigned int amount) {
@@ -142,14 +148,10 @@ void GraphPool::SetNewSumLitres(std::unordered_set<unsigned int> &id_need) {
     return;
 }
 
-void GraphPool::DfsLitres(unsigned int id, std::vector<bool> &pass, bool set_litr, double litr) {
+void GraphPool::DfsLitres(unsigned int id, std::vector<bool> &pass) {
 
     double res_litr = pools[id].GetLitres();
     unsigned int res_count = 1;
-
-    if (set_litr) {  // если уставновлен флаг на пересчет воды в бассейнах
-        pools[id].SetLitres(litr);
-    }
 
     std::stack<unsigned int> q;  // стек из индексов бассейнов, которые ещё не обработаны
     std::stack<unsigned int> set_ind;  // стек из индексов, для которых надо будет установить новый объём литров
@@ -170,12 +172,7 @@ void GraphPool::DfsLitres(unsigned int id, std::vector<bool> &pass, bool set_lit
                     q.push(neighbor);
                     set_ind.push(neighbor);
 
-                    if (!set_litr) {  // не если уставновлен флаг на пересчет воды в бассейнах, то добавляем в сумму
-                        res_litr += pools[neighbor].GetLitres();
-                        ++res_count;
-                    } else {
-                        pools[neighbor].SetLitres(litr);  // иначе присваиваем нвоое значение объема воды
-                    }
+                    ++res_count;
                 }
             }
         }

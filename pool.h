@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <unordered_set>
+#include <random>
 
 class Pool {
     private:
@@ -34,6 +35,8 @@ class GraphPool {
         unsigned int max_litres;  // максимальный объем воды для добавленияль
         unsigned int amount_edges;  // количество связей в графе
         std::unordered_set<unsigned int> ids_connect;  // индексы, которые имеют связанные бассейны
+        bool first_filled;
+        std::mt19937 rng;
 
         unsigned int GetId() const;
 
@@ -45,7 +48,7 @@ class GraphPool {
 
         void SetNewSumLitres(std::unordered_set<unsigned int> &id_pass);
 
-        void DfsLitres(unsigned int id, std::vector<bool> &pass, bool set_litr = false, double litr = 0);
+        void DfsLitres(unsigned int id, std::vector<bool> &pass);
 
     public:
         GraphPool(unsigned int amount, unsigned int max);  // создание графа (пока как отдельные бассейны) бассейнов
